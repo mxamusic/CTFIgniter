@@ -1,7 +1,5 @@
 # CTFIgniter
-CTFIgniter or Capture The Flag Igniter is a short shell script for quick Capture The Flag deployment, it uses Mellivora as the main CTF engine.
-
-Customization on Mellivora will be included on the road-map of CTFIgniter.
+CTFIgniter or Capture The Flag Igniter is a short shell script for quick Capture The Flag deployment, it uses CTFd as the main CTF engine.
 
 #Installation
 1. Install a base Debian system, no other stuffs in it just base.
