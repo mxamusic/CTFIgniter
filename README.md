@@ -1,3 +1,6 @@
+![](https://github.com/semprix/CTFIgniter/blob/master/payload/CTFd/static/img/logo.png)
+====
+
 # CTFIgniter
 CTF Igniter is a fast CTF deployment tool with Nginx + CTFd engine.
 
