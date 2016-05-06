@@ -1,5 +1,5 @@
 # CTFIgniter
-CTFIgniter or Capture The Flag Igniter is a short shell script for quick Capture The Flag deployment, it uses CTFd as the main CTF engine.
+CTF Igniter is a fast CTF deployment tool with Nginx + CTFd engine.
 
 #Installation
 1. Install a base Debian system, no other stuffs in it just base.
