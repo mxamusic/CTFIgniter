@@ -53,9 +53,9 @@ wget https://bootstrap.pypa.io/get-pip.py
 python get-pip.py
 # Switch to /var/www directory
 cd /var/www/
-# Cloning CTFd from semprix repo
+# Extracting CTFd from semprix repo
 echo -e "\e[38;5;82m===>\e[0m Extracting CTFd engine to www root"
-cp -R /root/CTFIgniter/payload/CTFd /var/www
+cp -R CTFIgniter/payload/CTFd /var/www
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Preparing CTFd Engine"
 # Switch to /var/www/CTFd directory
