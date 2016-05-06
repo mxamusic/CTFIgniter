@@ -1,4 +1,4 @@
-![](https://github.com/semprix/CTFIgniter/blob/master/payload/CTFd/static/img/logo.png)
+    ![](https://github.com/semprix/CTFIgniter/blob/master/payload/CTFd/static/img/logo.png)
 ====
 
 # CTFIgniter
