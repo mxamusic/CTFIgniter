@@ -70,8 +70,12 @@ pip install uwsgi
 #
 echo -e "\e[38;5;82m===>\e[0m Performing cleanup"
 rm -rf docker-compose-run.sh docker-compose.yml Dockerfile populate.py README.md
-echo -e "\e[38;5;82m===>\e[0m Edit nginx config"
-echo -e "\e[38;5;82m===>\e[0m Check scripts/startup.sh"
+echo -e "\e[38;5;82m===>\e[0m Restarting Nginx"
+killall nginx
+sleep 3
+service nginx start
+echo -e "\e[38;5;82m===>\e[0m Edit nginx config (use CTFIgniter/conf/ctfd.nginx.conf configuration file for Nginx)"
+echo -e "\e[38;5;82m===>\e[0m Start CTFd by using CTFIgniter/scripts/startup.sh"
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Finishing....."
 echo -e "\e[38;5;82m===>\e[0m Done"
