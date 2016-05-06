@@ -1,10 +1,11 @@
 #/bin/bash
 
 # CTF Igniter
+# A fast CTF deployment tool, the tool will deploy Nginx and use CTFd engine.
 # author: @semprix
 #
 #
-#
+
 echo -e "\e[38;5;82m*******************************************************************************\e[0m"
 echo -e "\e[38;5;82mCTF Igniter is a fast CTF deployment tool, it will deploy Nginx and CTFd Engine\e[0m"
 echo -e "\e[38;5;82m*******************************************************************************\e[0m"
@@ -46,7 +47,7 @@ sleep 2
 
 # Phase 2 Installation
 
-# Lets fetch get-pip to initialize pip
+# Fetch get-pip to initialize pip
 echo -e "\e[38;5;82m===>\e[0m Bootstrapping pip "
 wget https://bootstrap.pypa.io/get-pip.py
 python get-pip.py
@@ -65,14 +66,16 @@ sh prepare.sh
 echo -e "\e[38;5;82m===>\e[0m Fetching uwsgi"
 sleep 2
 pip install uwsgi
+
 #
 # Post Installation Tasks
 #
 echo -e "\e[38;5;82m===>\e[0m Performing cleanup"
 rm -rf docker-compose-run.sh docker-compose.yml Dockerfile populate.py README.md
-echo -e "\e[38;5;82m===>\e[0m Restarting Nginx"
+echo -e "\e[38;5;82m===>\e[0m Forcing Stop Nginx"
 killall nginx
 sleep 3
+echo -e "\e[38;5;82m===>\e[0m Starting Nginx"
 service nginx start
 echo -e "\e[38;5;82m===>\e[0m Edit nginx config (use CTFIgniter/conf/ctfd.nginx.conf configuration file for Nginx)"
 echo -e "\e[38;5;82m===>\e[0m Start CTFd by using CTFIgniter/scripts/startup.sh"
