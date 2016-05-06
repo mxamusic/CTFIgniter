@@ -5,26 +5,25 @@
 #
 #
 #
-
-echo "======================================="
-echo "        Capture The Flag Igniter       "
-echo "======================================="
+echo -e "\e[38;5;82m*******************************************************************************\e[0m"
+echo -e "\e[38;5;82mCTF Igniter is a fast CTF deployment tool, it will deploy Nginx and CTFd Engine\e[0m"
+echo -e "\e[38;5;82m*******************************************************************************\e[0m"
 echo ""
-echo "CTF Igniter will install CTFd engine and all its dependencies"
-echo ""
-echo -e "\e[38;5;82m--> Checking if run as root\e[0m"
-
+echo -e "\e[38;5;82m===>\e[0m Checking if run as root"
 # Make sure only root can run our script
 if [ "$(id -u)" != "0" ]; then
    echo -e "\e[31m[--] This script must be run as root\e[0m" 1>&2
    exit 1
 else
-   echo -e "\e[38;5;82m[++] We are root!!!\e[0m"
+   echo -e "\e[38;5;82m[++]\e[0m We are root!!!"
 fi
 echo -e "\e[38;5;82m===>\e[0m Updating tree"
 sleep 3
 # Update tree
 apt-get update
+# Set locale first to prevent locale errors
+echo -e "\e[38;5;82m===>\e[0m Exporting locale"
+export LC_ALL=C
 # Install git-core
 echo -e "\e[38;5;82m===>\e[0m Installing Git "
 sleep 2
@@ -47,24 +46,32 @@ sleep 2
 
 # Phase 2 Installation
 
-# Bootstrapping pip
+# Lets fetch get-pip to initialize pip
 echo -e "\e[38;5;82m===>\e[0m Bootstrapping pip "
 wget https://bootstrap.pypa.io/get-pip.py
+python get-pip.py
 # Switch to /var/www directory
 cd /var/www/
-# Install Git
+# Cloning CTFd from semprix repo
 echo -e "\e[38;5;82m===>\e[0m Cloning CTFd"
 git clone https://github.com/semprix/CTFd.git
 sleep 2
-echo -e "\e[38;5;82m===>\e[0m Exporting locale"
-export LC_ALL=C
 echo -e "\e[38;5;82m===>\e[0m Preparing CTFd Engine"
+# Switch to /var/www/CTFd directory
 cd /var/www/CTFd
 sleep 2
+# Run the CTFd dependency check
 sh prepare.sh
+echo -e "\e[38;5;82m===>\e[0m Fetching uwsgi"
+sleep 2
+pip install uwsgi
 #
 # Post Installation Tasks
 #
 echo -e "\e[38;5;82m===>\e[0m Performing cleanup"
 rm -rf docker-compose-run.sh docker-compose.yml Dockerfile populate.py README.md
 echo -e "\e[38;5;82m===>\e[0m Edit nginx config"
+echo -e "\e[38;5;82m===>\e[0m Check scripts/startup.sh"
+sleep 2
+echo -e "\e[38;5;82m===>\e[0m Finishing....."
+echo -e "\e[38;5;82m===>\e[0m Done"
