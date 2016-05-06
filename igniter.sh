@@ -62,7 +62,7 @@ echo -e "\e[38;5;82m===>\e[0m Preparing CTFd Engine"
 cd /var/www/CTFd
 sleep 2
 # Run the CTFd dependency check
-sh /root/CTFIgniter/payload/CTFd/prepare.sh
+sh /root/CTFIgniter/payload/prepare.sh
 echo -e "\e[38;5;82m===>\e[0m Fetching uwsgi"
 sleep 2
 pip install uwsgi
