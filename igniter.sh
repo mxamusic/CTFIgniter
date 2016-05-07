@@ -80,9 +80,9 @@ echo -e "\e[38;5;82m===>\e[0m Forcing Stop Nginx"
 killall nginx
 sleep 3
 echo -e "\e[38;5;82m===>\e[0m Copying Nginx configs"
-cp $currentdir/conf/ctfd.nginx.conf /etc/nginx/sites-available/ctfd
+cp $currentdir/conf/ctfd.nginx.conf /etc/nginx/sites-available/ctfigniter
 echo -e "\e[38;5;82m===>\e[0m Creating symbolic links"
-ln -s /etc/nginx/sites-available/ctfd /etc/nginx/sites-enabled/ctfd
+ln -s /etc/nginx/sites-available/ctfd /etc/nginx/sites-enabled/ctfigniter
 echo -e "\e[38;5;82m===>\e[0m Copying startup script"
 cp $currentdir/scripts/startup.sh /var/www
 sleep 2

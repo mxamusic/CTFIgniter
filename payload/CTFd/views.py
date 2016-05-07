@@ -52,13 +52,13 @@ def setup():
             page = Pages('index', """<div class="container main-container">
     <img class="logo" src="/static/img/logo.png" />
     <h3 class="text-center">
-Welcome to CTFIgniter a CTF engine forked from CTFd
+Welcome to CTFIgniter
     </h3>
     <center>
 forked by: ROOTCON Labs
 </center>
     <h4 class="text-center">
-        <a href="/admin">Click here</a> to login and setup your CTF Engine.
+        <a href="/admin">Click here</a> to login and setup your CTF.
     </h4>
 </div>""")
 
