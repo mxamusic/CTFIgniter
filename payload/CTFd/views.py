@@ -52,9 +52,9 @@ def setup():
             page = Pages('index', """<div class="container main-container">
     <img class="logo" src="/static/img/logo.png" />
     <h3 class="text-center">
-        Welcome to the CTF framework written by <a href="https://github.com/ColdHeat">Kevin Chung</a> forked by <a href="https://github.com/semprix/">semprix</a> for ROOTCON</a>
+Welcome to CTFIgniter a CTF engine forked from CTFd
     </h3>
-
+written by: Kevin Chung forked by: ROOTCON Labs
     <h4 class="text-center">
         <a href="/admin">Click here</a> to login and setup your CTF Engine.
     </h4>
