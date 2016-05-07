@@ -1,3 +1,3 @@
 #!/bin/bash
 
-uwsgi -s /tmp/uwsgi.sock -w "CTFd:create_app()" --chmod-socket=666
+uwsgi -s /tmp/uwsgi.sock -w "CTFd:create_app()" --chmod-socket=666 --uid www-data --gid www-data
