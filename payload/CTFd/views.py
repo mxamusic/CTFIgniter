@@ -54,7 +54,9 @@ def setup():
     <h3 class="text-center">
 Welcome to CTFIgniter a CTF engine forked from CTFd
     </h3>
-written by: Kevin Chung forked by: ROOTCON Labs
+    <center>
+forked by: ROOTCON Labs
+</center>
     <h4 class="text-center">
         <a href="/admin">Click here</a> to login and setup your CTF Engine.
     </h4>
