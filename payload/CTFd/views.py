@@ -56,10 +56,9 @@ Welcome to CTFIgniter
     </h3>
     <center>
 forked by: ROOTCON Labs
-</center>
-    <h4 class="text-center">
+<br>
         <a href="/admin">Click here</a> to login and setup your CTF.
-    </h4>
+</center>
 </div>""")
 
             #max attempts per challenge
