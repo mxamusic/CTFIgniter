@@ -55,9 +55,10 @@ def setup():
 Welcome to CTFIgniter
     </h3>
     <center>
+
+<a href="/admin">Click here</a> to setup your CTF.
+<br><br><br>
 forked by: semprix
-<br>
-        <a href="/admin">Click here</a> to setup your CTF.
 <br>
 Credits to ColdHeat (Kevin Chung) of ISISLab
 </center>
