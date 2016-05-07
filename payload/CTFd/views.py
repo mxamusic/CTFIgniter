@@ -57,7 +57,7 @@ Welcome to CTFIgniter
     <center>
 forked by: semprix, credits to: ColdHeat (Kevin Chung)
 <br>
-        <a href="/admin">Click here</a> to login and setup your CTF.
+        <a href="/admin">Click here</a> to setup your CTF.
 </center>
 </div>""")
 
