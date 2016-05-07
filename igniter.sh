@@ -60,7 +60,7 @@ echo -e "\e[38;5;82m===>\e[0m Extracting CTFd engine to www root"
 cp -R $currentdir/payload/CTFd /var/www
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Copying serve engine to www root"
-cp -R $currentdir/payload/serve.py /var/www/CTFd
+cp -R $currentdir/payload/serve.py /var/www/
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Building essentials"
 apt-get install build-essential python-dev python-pip libffi-dev -y
@@ -81,17 +81,23 @@ killall nginx
 sleep 3
 echo -e "\e[38;5;82m===>\e[0m Copying Nginx configs"
 cp $currentdir/conf/ctfd.nginx.conf /etc/nginx/sites-available/ctfd
-echo -e "\e[38;5;82m===>\e[0m creating symbolic links"
+echo -e "\e[38;5;82m===>\e[0m Creating symbolic links"
 ln -s /etc/nginx/sites-available/ctfd /etc/nginx/sites-enabled/ctfd
+echo -e "\e[38;5;82m===>\e[0m Copying startup script"
+cp $currentdir/scripts/startup.sh /var/www
+sleep 2
+echo -e "\e[38;5;82m===>\e[0m Setting startup script permission"
+chmod +x /var/www/startup.sh
 sleep 3
 echo -e "\e[38;5;82m===>\e[0m Performing cleanup"
 rm -rf /etc/nginx/sites-available/default
 rm -rf /etc/nginx/sites-enabled/default
-rm -rf get-pip.py
+rm -rf /var/www/html
+rm -rf $currentdir/get-pip.py
 echo -e "\e[38;5;82m===>\e[0m Starting Nginx"
 service nginx start
 sleep 3
-echo -e "\e[38;5;82m===>\e[0m Check CTFIgniter/scripts/startup.sh how to start CTFIgniter"
+echo -e "\e[38;5;82m===>\e[0m Go to /var/www and run startup.sh to start CTF web."
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Finishing....."
 echo -e "\e[38;5;82m===>\e[0m Done"
