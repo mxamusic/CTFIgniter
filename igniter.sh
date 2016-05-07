@@ -97,7 +97,8 @@ rm -rf $currentdir/get-pip.py
 echo -e "\e[38;5;82m===>\e[0m Starting Nginx"
 service nginx start
 sleep 3
-echo -e "\e[38;5;82m===>\e[0m Go to /var/www and run startup.sh to start CTF web."
+echo -e "\e[38;5;82m===>\e[0m Starting CTFIgniter CTF web"
+sh /var/www/startup.sh &
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Finishing....."
 echo -e "\e[38;5;82m===>\e[0m Done"
