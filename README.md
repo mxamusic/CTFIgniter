@@ -17,4 +17,4 @@ CTF Igniter is a fast CTF deployment tool with Nginx + CTFd engine.
 
 # Credits
 
-Credits to ColdHeat (Kevin Chung) if ISISLab
+Credits to ColdHeat (Kevin Chung) of ISISLab
