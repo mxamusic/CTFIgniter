@@ -57,12 +57,11 @@ cd /var/www/
 echo -e "\e[38;5;82m===>\e[0m Extracting CTFd engine to www root"
 cp -R /root/CTFIgniter/payload/CTFd /var/www
 sleep 2
-echo -e "\e[38;5;82m===>\e[0m Preparing CTFd Engine"
-# Switch to /var/www/CTFd directory
-cd /var/www/CTFd
+echo -e "\e[38;5;82m===>\e[0m Building essentials"
+apt-get install build-essential python-dev python-pip libffi-dev -y
 sleep 2
-# Run the CTFd dependency check
-sh /root/CTFIgniter/payload/prepare.sh
+echo -e "\e[38;5;82m===>\e[0m Fetching required python libraries"
+pip install -r requirments.txt
 echo -e "\e[38;5;82m===>\e[0m Fetching uwsgi"
 sleep 2
 pip install uwsgi
