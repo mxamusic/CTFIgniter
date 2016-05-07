@@ -27,7 +27,8 @@ a {
 }
 
 .navbar > .container {
-    padding-top: 30px;
+    padding-top: 15px;
+
 }
 
 .navbar .navbar-brand {
@@ -132,29 +133,37 @@ table{
     }
 }
 
+/* Define buttons */
+
 .btn {
-    letter-spacing: 1px;
-    text-decoration: none;
-    -moz-user-select: none;
-    border-radius: 0;
-    cursor: pointer;
-    display: inline-block;
-    margin-bottom: 0;
-    vertical-align: middle;
-    white-space: nowrap;
-    font-size:14px;
-    line-height:20px;
-    font-weight:700;
-    text-transform:uppercase;
-    padding:8px 20px;
+	padding: 14px 24px;
+	border: 0 none;
+	font-weight: 700;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+}
+.btn:focus, .btn:active:focus, .btn.active:focus {
+	outline: 0 none;
 }
 
-.btn-outlined {
-    border-radius: 0;
-    -webkit-transition: all 0.3s;
-       -moz-transition: all 0.3s;
-            transition: all 0.3s;
+.btn:hover{
+color:#ffffff;
+
 }
+
+.btn.round {
+	border-radius: 24px;
+}
+.btn-lg.round {
+	border-radius: 32px;
+}
+.btn-sm.round {
+	border-radius: 14px;
+}
+.btn-xs.round {
+	border-radius: 10px;
+}
+
 
 .file-wrapper {
     background-color: #5B7290;
@@ -185,29 +194,14 @@ table{
     text-align: center;
 }
 
-.btn-outlined.btn-theme {
-    background: none;
-    color: #545454;
-    border-color: #545454;
-    background-image: none;
-    border: 3px solid;
-}
-
-.btn-outlined.btn-theme:hover,
-.btn-outlined.btn-theme:active {
-    color: #FFF;
-    background: #545454;
-    border-color: #545454;
-}
-
 .navbar-inverse {
-    background: none repeat scroll 0% 0% #545454;
-    border: medium none;
-    margin-bottom: 0px;
+  background-color:#262626;
+  border: medium none;
+  margin-bottom: 0px;
 }
 
 .jumbotron {
-    background-color: #545454;
+    background-color: #262626;
     color: #FFF;
     padding: 0px 0px 25px;
 }
