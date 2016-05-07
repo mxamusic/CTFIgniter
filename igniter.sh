@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 # CTF Igniter
 # A fast CTF deployment tool, the tool will deploy Nginx and use CTFd engine.
