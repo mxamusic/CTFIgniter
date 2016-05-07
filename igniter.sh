@@ -66,7 +66,7 @@ echo -e "\e[38;5;82m===>\e[0m Building essentials"
 apt-get install build-essential python-dev python-pip libffi-dev -y
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Fetching required python libraries"
-pip install -r $currentdir/requirements.txt
+pip install -r $currentdir/payload/requirements.txt
 echo -e "\e[38;5;82m===>\e[0m Fetching uwsgi"
 sleep 2
 pip install uwsgi
@@ -94,6 +94,7 @@ rm -rf /etc/nginx/sites-available/default
 rm -rf /etc/nginx/sites-enabled/default
 rm -rf /var/www/html
 rm -rf $currentdir/get-pip.py
+rm -rf $currentdir/payload/requirements.txt
 echo -e "\e[38;5;82m===>\e[0m Starting Nginx"
 service nginx start
 sleep 3
