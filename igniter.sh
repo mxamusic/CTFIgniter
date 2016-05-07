@@ -61,7 +61,8 @@ echo -e "\e[38;5;82m===>\e[0m Building essentials"
 apt-get install build-essential python-dev python-pip libffi-dev -y
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Fetching required python libraries"
-pip install -r ~/CTFIgniter/requirements.txt
+currentdir=`pwd`
+pip install -r $currentdir/requirements.txt
 echo -e "\e[38;5;82m===>\e[0m Fetching uwsgi"
 sleep 2
 pip install uwsgi
