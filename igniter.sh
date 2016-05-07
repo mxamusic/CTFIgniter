@@ -97,7 +97,9 @@ rm -rf $currentdir/get-pip.py
 echo -e "\e[38;5;82m===>\e[0m Starting Nginx"
 service nginx start
 sleep 3
-echo -e "\e[38;5;82m===>\e[0m Starting CTFIgniter CTF web as root (NOT RECOMMENDED)"
+echo -e "\e[38;5;82m===>\e[0m Starting CTFIgniter CTF web"
+echo -e "\e[38;5;82m[******]\e[0m NOT RECOMMENDED TO RUN AS root"
+
 sh /var/www/startup.sh
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m To run as non-root CTRL-C then user another user."
