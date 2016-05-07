@@ -15,6 +15,6 @@ CTF Igniter is a fast CTF deployment tool with Nginx + CTFd engine.
 # Tested on
  - Debian 8 64-bit
 
-# Copyright
+# Credits
 
-Payload of CTFIgniter is originally created by ISISLab https://ctfd.io
+Credits to ColdHeat (Kevin Chung) if ISISLab
