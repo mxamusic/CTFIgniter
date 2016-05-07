@@ -60,7 +60,7 @@ echo -e "\e[38;5;82m===>\e[0m Extracting CTFd engine to www root"
 cp -R $currentdir/payload/CTFd /var/www
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Copying serve engine to www root"
-cp -R $currentdir/payload/server.py /var/www/CTFd
+cp -R $currentdir/payload/serve.py /var/www/CTFd
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Building essentials"
 apt-get install build-essential python-dev python-pip libffi-dev -y
