@@ -9,7 +9,7 @@ CTF Igniter is a fast CTF deployment tool with Nginx + CTFd engine.
 2. Download the igniter.sh script from https://github.com/semprix/CTFIgniter/archive/master.zip
 3. chmod +x igniter.sh
 3. Run ./igniter.sh.
-4. Wait until igniter finishes installing all CTF server components.
+4. Get some coffee and wait until igniter finishes installing and deploying your CTF!
 5. Report any errors encountered.
 
 # Tested on
