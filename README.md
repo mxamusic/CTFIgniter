@@ -13,7 +13,8 @@ CTF Igniter is a fast CTF deployment tool with Nginx + CTFd engine.
 5. Report any errors encountered.
 
 # Tested on
- - Debian 8 64-bit
+ - Debian 8 (Jessie) 64-bit
+ - Debian 7 (Wheezy) 64-bit
 
 # Credits
 
