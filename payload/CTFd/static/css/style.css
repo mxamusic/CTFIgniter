@@ -364,8 +364,9 @@ color:#ffffff;
 
 /* Prevent scrollbars to appear when waves go out of bound */
 .sonar-wrapper {
-  overflow: hidden;
-  width: 150px;
+  width: 300px;
+  float: left;
+  display: block;
 }
 
 /* The circle */
@@ -380,8 +381,11 @@ color:#ffffff;
 
 }
 
-.sonar-emitter span {
-  padding-left: 30px;
+.sonar-emitter-text  {
+padding-left: 30px;
+display: inline-block;;
+white-space:nowrap;
+font-size: 15px;
 
 }
 
