@@ -1,4 +1,6 @@
-![](https://github.com/semprix/CTFIgniter/blob/master/payload/CTFd/static/img/logo.jpg)
+<p align="center">
+<img src="https://github.com/semprix/CTFIgniter/blob/master/payload/CTFd/static/img/logo.jpg">
+</p>
 ====
 
 # CTFIgniter
