@@ -50,14 +50,13 @@ def setup():
 
             ## Index page
             page = Pages('index', """<div class="container main-container">
-    <img class="logo" src="{0}/static/img/logo.png" />
+        <img class="logo" src="{0}/static/assets/img/ctfigniter_logo.png" />
     <h3 class="text-center">
-        Welcome to a cool CTF framework written by <a href="https://github.com/ColdHeat">Kevin Chung</a> of <a href="https://github.com/isislab">@isislab</a>
+    Hello! Welcome to CTFIgniter
     </h3>
-
-    <h4 class="text-center">
-        <a href="{0}/admin">Click here</a> to login and setup your CTF
-    </h4>
+        <h4 class="text-center">
+        Start setting-up your Capture The Flag - <a href="/admin">Click here</a>
+        </h4>
 </div>""".format(request.script_root))
 
             #max attempts per challenge
