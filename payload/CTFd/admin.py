@@ -1,9 +1,10 @@
 from flask import render_template, request, redirect, abort, jsonify, url_for, session, Blueprint
-from CTFd.utils import sha512, is_safe_url, authed, admins_only, is_admin, unix_time, unix_time_millis, get_config, set_config, sendmail, rmdir
-from CTFd.models import db, Teams, Solves, Awards, Challenges, WrongKeys, Keys, Tags, Files, Tracking, Pages, Config, DatabaseError
+from CTFd.utils import sha512, is_safe_url, authed, admins_only, is_admin, unix_time, unix_time_millis, get_config, set_config, sendmail, rmdir, create_image, delete_image, run_image, container_status, container_ports, container_stop, container_start
+from CTFd.models import db, Teams, Solves, Awards, Containers, Challenges, WrongKeys, Keys, Tags, Files, Tracking, Pages, Config, DatabaseError
 from itsdangerous import TimedSerializer, BadTimeSignature
 from sqlalchemy.sql import and_, or_, not_
 from sqlalchemy.sql.expression import union_all
+from sqlalchemy.sql.functions import coalesce
 from werkzeug.utils import secure_filename
 from socket import inet_aton, inet_ntoa
 from passlib.hash import bcrypt_sha256
@@ -17,6 +18,8 @@ import os
 import json
 import datetime
 import calendar
+
+from scoreboard import get_standings
 
 admin = Blueprint('admin', __name__)
 
@@ -182,6 +185,7 @@ def admin_css():
         return "1"
     return "0"
 
+
 @admin.route('/admin/pages', defaults={'route': None}, methods=['GET', 'POST'])
 @admin.route('/admin/pages/<route>', methods=['GET', 'POST'])
 @admins_only
@@ -223,19 +227,80 @@ def delete_page(pageroute):
     return '1'
 
 
+@admin.route('/admin/containers', methods=['GET'])
+@admins_only
+def list_container():
+    containers = Containers.query.all()
+    for c in containers:
+        c.status = container_status(c.name)
+        c.ports = ", ".join(container_ports(c.name, verbose=True))
+    return render_template('admin/containers.html', containers=containers)
+
+
+@admin.route('/admin/containers/<container_id>/stop', methods=['POST'])
+@admins_only
+def stop_container(container_id):
+    container = Containers.query.filter_by(id=container_id).first_or_404()
+    if container_stop(container.name):
+        return '1'
+    else:
+        return '0'
+
+
+@admin.route('/admin/containers/<container_id>/start', methods=['POST'])
+@admins_only
+def run_container(container_id):
+    container = Containers.query.filter_by(id=container_id).first_or_404()
+    if container_status(container.name) == 'missing':
+        if run_image(container.name):
+            return '1'
+        else:
+            return '0'
+    else:
+        if container_start(container.name):
+            return '1'
+        else:
+            return '0'
+
+
+@admin.route('/admin/containers/<container_id>/delete', methods=['POST'])
+@admins_only
+def delete_container(container_id):
+    container = Containers.query.filter_by(id=container_id).first_or_404()
+    if delete_image(container.name):
+        db.session.delete(container)
+        db.session.commit()
+        db.session.close()
+    return '1'
+
+
+@admin.route('/admin/containers/new', methods=['POST'])
+@admins_only
+def new_container():
+    name = request.form.get('name')
+    if set(name) <= set('abcdefghijklmnopqrstuvwxyz0123456789-_'):
+        return redirect(url_for('admin.list_container'))
+    buildfile = request.form.get('buildfile')
+    files = request.files.getlist('files[]')
+    create_image(name=name, buildfile=buildfile, files=files)
+    run_image(name)
+    return redirect(url_for('admin.list_container'))
+
+
+
 @admin.route('/admin/chals', methods=['POST', 'GET'])
 @admins_only
 def admin_chals():
     if request.method == 'POST':
         chals = Challenges.query.add_columns('id', 'name', 'value', 'description', 'category', 'hidden').order_by(Challenges.value).all()
 
-        teams_with_points = db.session.query(Solves.teamid, Teams.name).join(Teams).filter(
-            Teams.banned == None).group_by(
+        teams_with_points = db.session.query(Solves.teamid).join(Teams).filter(
+            Teams.banned == False).group_by(
                 Solves.teamid).count()
 
         json_data = {'game':[]}
         for x in chals:
-            solve_count = Solves.query.join(Teams, Solves.teamid == Teams.id).filter(Solves.chalid==x[1], Teams.banned==None).count()
+            solve_count = Solves.query.join(Teams, Solves.teamid == Teams.id).filter(Solves.chalid == x[1], Teams.banned == False).count()
             if teams_with_points > 0:
                 percentage = (float(solve_count) / float(teams_with_points))
             else:
@@ -365,7 +430,7 @@ def admin_teams(page):
     page_start = results_per_page * ( page - 1 )
     page_end = results_per_page * ( page - 1 ) + results_per_page
 
-    teams = Teams.query.slice(page_start, page_end).all()
+    teams = Teams.query.order_by(Teams.id.asc()).slice(page_start, page_end).all()
     count = db.session.query(db.func.count(Teams.id)).first()[0]
     pages = int(count / results_per_page) + (count % results_per_page > 0)
     return render_template('admin/teams.html', teams=teams, pages=pages, curr_page=page)
@@ -380,7 +445,9 @@ def admin_team(teamid):
         solves = Solves.query.filter_by(teamid=teamid).all()
         solve_ids = [s.chalid for s in solves]
         missing = Challenges.query.filter( not_(Challenges.id.in_(solve_ids) ) ).all()
-        addrs = Tracking.query.filter_by(team=teamid).order_by(Tracking.date.desc()).group_by(Tracking.ip).all()
+        addrs = db.session.query(Tracking.ip, db.func.max(Tracking.date)) \
+                .filter_by(team=teamid) \
+                .group_by(Tracking.ip).all()
         wrong_keys = WrongKeys.query.filter_by(teamid=teamid).order_by(WrongKeys.date.asc()).all()
         awards = Awards.query.filter_by(teamid=teamid).order_by(Awards.date.asc()).all()
         score = user.score()
@@ -390,10 +457,12 @@ def admin_team(teamid):
     elif request.method == 'POST':
         admin_user = request.form.get('admin', None)
         if admin_user:
-            admin_user = 1 if admin_user == "true" else 0
+            admin_user = True if admin_user == 'true' else False
             user.admin = admin_user
+            # Set user.banned to hide admins from scoreboard
             user.banned = admin_user
             db.session.commit()
+            db.session.close()
             return jsonify({'data': ['success']})
 
         name = request.form.get('name', None)
@@ -444,7 +513,7 @@ def email_user(teamid):
 @admins_only
 def ban(teamid):
     user = Teams.query.filter_by(id=teamid).first()
-    user.banned = 1
+    user.banned = True
     db.session.commit()
     return redirect(url_for('admin.admin_scoreboard'))
 
@@ -453,7 +522,7 @@ def ban(teamid):
 @admins_only
 def unban(teamid):
     user = Teams.query.filter_by(id=teamid).first()
-    user.banned = None
+    user.banned = False
     db.session.commit()
     return redirect(url_for('admin.admin_scoreboard'))
 
@@ -483,36 +552,21 @@ def admin_graph(graph_type):
             json_data['categories'].append({'category':category, 'count':count})
         return jsonify(json_data)
     elif graph_type == "solves":
-        solves = Solves.query.join(Teams).filter(Teams.banned==None).add_columns(db.func.count(Solves.chalid)).group_by(Solves.chalid).all()
+        solves_sub = db.session.query(Solves.chalid, db.func.count(Solves.chalid).label('solves_cnt')) \
+                .join(Teams, Solves.teamid == Teams.id).filter(Teams.banned == False) \
+                .group_by(Solves.chalid).subquery()
+        solves = db.session.query(solves_sub.columns.chalid, solves_sub.columns.solves_cnt, Challenges.name) \
+                .join(Challenges, solves_sub.columns.chalid == Challenges.id).all()
         json_data = {}
-        for chal, count in solves:
-            json_data[chal.chal.name] = count
+        for chal, count, name in solves:
+            json_data[name] = count
         return jsonify(json_data)
 
 
 @admin.route('/admin/scoreboard')
 @admins_only
 def admin_scoreboard():
-    score = db.func.sum(Challenges.value).label('score')
-    scores = db.session.query(Solves.teamid.label('teamid'), Teams.name.label('name'), score, Solves.date.label('date')) \
-        .join(Teams) \
-        .join(Challenges) \
-        .filter(Teams.banned == None) \
-        .group_by(Solves.teamid)
-
-    awards = db.session.query(Teams.id.label('teamid'), Teams.name.label('name'),
-                              db.func.sum(Awards.value).label('score'), Awards.date.label('date')) \
-        .filter(Teams.id == Awards.teamid) \
-        .group_by(Teams.id)
-
-    results = union_all(scores, awards)
-
-    standings = db.session.query(results.columns.teamid, results.columns.name,
-                                 db.func.sum(results.columns.score).label('score')) \
-        .group_by(results.columns.teamid) \
-        .order_by(db.func.sum(results.columns.score).desc(), db.func.max(results.columns.date)) \
-        .all()
-    db.session.close()
+    standings = get_standings(admin=True)
     return render_template('admin/scoreboard.html', teams=standings)
 
 
@@ -572,7 +626,7 @@ def delete_award(award_id):
 def admin_scores():
     score = db.func.sum(Challenges.value).label('score')
     quickest = db.func.max(Solves.date).label('quickest')
-    teams = db.session.query(Solves.teamid, Teams.name, score).join(Teams).join(Challenges).filter(Teams.banned == None).group_by(Solves.teamid).order_by(score.desc(), quickest)
+    teams = db.session.query(Solves.teamid, Teams.name, score).join(Teams).join(Challenges).filter(Teams.banned == False).group_by(Solves.teamid).order_by(score.desc(), quickest)
     db.session.close()
     json_data = {'teams':[]}
     for i, x in enumerate(teams):
@@ -650,9 +704,18 @@ def admin_stats():
     wrong_count = db.session.query(db.func.count(WrongKeys.id)).first()[0]
     solve_count = db.session.query(db.func.count(Solves.id)).first()[0]
     challenge_count = db.session.query(db.func.count(Challenges.id)).first()[0]
-    most_solved_chal = Solves.query.add_columns(db.func.count(Solves.chalid).label('solves')).group_by(Solves.chalid).order_by('solves DESC').first()
-    least_solved_chal = Challenges.query.add_columns(db.func.count(Solves.chalid).label('solves')).outerjoin(Solves).group_by(Challenges.id).order_by('solves ASC').first()
-
+    
+    solves_raw = db.func.count(Solves.chalid).label('solves_raw')
+    solves_sub = db.session.query(Solves.chalid, solves_raw) \
+        .group_by(Solves.chalid).subquery()
+    solves_cnt = coalesce(solves_sub.columns.solves_raw, 0).label('solves_cnt')
+    most_solved_chal = Challenges.query.add_columns(solves_cnt) \
+        .outerjoin(solves_sub, solves_sub.columns.chalid == Challenges.id) \
+        .order_by(solves_cnt.desc()).first()
+    least_solved_chal = Challenges.query.add_columns(solves_cnt) \
+        .outerjoin(solves_sub, solves_sub.columns.chalid == Challenges.id) \
+        .order_by(solves_cnt.asc()).first()
+    
     db.session.close()
 
     return render_template('admin/statistics.html', team_count=teams_registered,
@@ -704,8 +767,8 @@ def admin_correct_key(page='1'):
 @admins_only
 def admin_fails(teamid='all'):
     if teamid == "all":
-        fails = WrongKeys.query.join(Teams, WrongKeys.teamid == Teams.id).filter(Teams.banned==None).count()
-        solves = Solves.query.join(Teams, Solves.teamid == Teams.id).filter(Teams.banned==None).count()
+        fails = WrongKeys.query.join(Teams, WrongKeys.teamid == Teams.id).filter(Teams.banned == False).count()
+        solves = Solves.query.join(Teams, Solves.teamid == Teams.id).filter(Teams.banned == False).count()
         db.session.close()
         json_data = {'fails':str(fails), 'solves': str(solves)}
         return jsonify(json_data)

@@ -1,10 +1,11 @@
-from CTFd.models import db, WrongKeys, Pages, Config, Tracking, Teams
+from CTFd.models import db, WrongKeys, Pages, Config, Tracking, Teams, Containers
 
 from six.moves.urllib.parse import urlparse, urljoin
+from werkzeug.utils import secure_filename
 from functools import wraps
 from flask import current_app as app, g, request, redirect, url_for, session, render_template, abort
 from itsdangerous import Signer, BadSignature
-from socket import inet_aton, inet_ntoa
+from socket import inet_aton, inet_ntoa, socket
 from struct import unpack, pack
 from sqlalchemy.engine.url import make_url
 from sqlalchemy import create_engine
@@ -21,6 +22,9 @@ import re
 import time
 import smtplib
 import email
+import tempfile
+import subprocess
+import json
 
 def init_logs(app):
     logger_keys = logging.getLogger('keys')
@@ -89,6 +93,7 @@ def init_utils(app):
     app.jinja_env.globals.update(can_register=can_register)
     app.jinja_env.globals.update(mailserver=mailserver)
     app.jinja_env.globals.update(ctf_name=ctf_name)
+    app.jinja_env.globals.update(can_create_container=can_create_container)
 
     @app.context_processor
     def inject_user():
@@ -127,7 +132,7 @@ def init_utils(app):
 
 def ctf_name():
     name = get_config('ctf_name')
-    return name if name else 'CTFIgniter'
+    return name if name else 'CTFd'
 
 
 def pages():
@@ -272,7 +277,7 @@ def get_kpm(teamid): # keys per minute
 
 def get_config(key):
     config = Config.query.filter_by(key=key).first()
-    if config:
+    if config and config.value:
         value = config.value
         if value and value.isdigit():
             return int(value)
@@ -295,7 +300,9 @@ def set_config(key, value):
 
 
 def mailserver():
-    if (get_config('mg_api_key')) or (get_config('mail_server') and get_config('mail_port')):
+    if app.config.get('MAILGUN_API_KEY') and app.config.get('MAILGUN_BASE_URL'):
+        return True
+    if (get_config('mg_api_key') and get_config('mg_base_url')) or (get_config('mail_server') and get_config('mail_port')):
         return True
     return False
 
@@ -310,12 +317,11 @@ def get_smtp(host, port, username=None, password=None, TLS=None, SSL=None):
     return smtp
 
 
-
 def sendmail(addr, text):
-    if get_config('mg_api_key') and get_config('mg_base_url'):
+    if mailserver():
         ctf_name = get_config('ctf_name')
-        mg_api_key = get_config('mg_api_key')
-        mg_base_url = get_config('mg_base_url')
+        mg_api_key = get_config('mg_api_key') or app.config.get('MAILGUN_API_KEY')
+        mg_base_url = get_config('mg_base_url') or app.config.get('MAILGUN_BASE_URL')
         r = requests.post(
             mg_base_url + '/messages',
             auth=("api", mg_api_key),
@@ -380,3 +386,131 @@ def validate_url(url):
 
 def sha512(string):
     return hashlib.sha512(string).hexdigest()
+
+
+def can_create_container():
+    try:
+        output = subprocess.check_output(['docker', 'version'])
+        return True
+    except (subprocess.CalledProcessError, OSError):
+        return False
+
+
+def is_port_free(port):
+    s = socket()
+    result = s.connect_ex(('127.0.0.1', port))
+    if result == 0:
+        s.close()
+        return False
+    return True
+
+
+def create_image(name, buildfile, files):
+    if not can_create_container():
+        return False
+    folder = tempfile.mkdtemp(prefix='ctfd')
+    tmpfile = tempfile.NamedTemporaryFile(dir=folder, delete=False)
+    tmpfile.write(buildfile)
+    tmpfile.close()
+
+    for f in files:
+        if f.filename.strip():
+            filename = os.path.basename(f.filename)
+            f.save(os.path.join(folder, filename))
+    # repository name component must match "[a-z0-9](?:-*[a-z0-9])*(?:[._][a-z0-9](?:-*[a-z0-9])*)*"
+    # docker build -f tmpfile.name -t name
+    try:
+        cmd = ['docker', 'build', '-f', tmpfile.name, '-t', name, folder]
+        print cmd
+        subprocess.call(cmd)
+        container = Containers(name, buildfile)
+        db.session.add(container)
+        db.session.commit()
+        db.session.close()
+        rmdir(folder)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def delete_image(name):
+    try:
+        subprocess.call(['docker', 'rm', name])
+        subprocess.call(['docker', 'rmi', name])
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def run_image(name):
+    try:
+        info = json.loads(subprocess.check_output(['docker', 'inspect', '--type=image', name]))
+
+        try:
+            ports_asked = info[0]['Config']['ExposedPorts'].keys()
+            ports_asked = [int(re.sub('[A-Za-z/]+', '', port)) for port in ports_asked]
+        except KeyError:
+            ports_asked = []
+
+        cmd = ['docker', 'run', '-d']
+        for port in ports_asked:
+            if is_port_free(port):
+                cmd.append('-p')
+                cmd.append('{}:{}'.format(port, port))
+            else:
+                cmd.append('-p')
+                ports_used.append('{}'.format(port))
+        cmd += ['--name', name, name]
+        print cmd
+        subprocess.call(cmd)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def container_start(name):
+    try:
+        cmd = ['docker', 'start', name]
+        subprocess.call(cmd)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def container_stop(name):
+    try:
+        cmd = ['docker', 'stop', name]
+        subprocess.call(cmd)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def container_status(name):
+    try:
+        data = json.loads(subprocess.check_output(['docker', 'inspect', '--type=container', name]))
+        status = data[0]["State"]["Status"]
+        return status
+    except subprocess.CalledProcessError:
+        return 'missing'
+
+
+def container_ports(name, verbose=False):
+    try:
+        info = json.loads(subprocess.check_output(['docker', 'inspect', '--type=container', name]))
+        if verbose:
+            ports = info[0]["NetworkSettings"]["Ports"]
+            if not ports:
+                return []
+            final = []
+            for port in ports.keys():
+                final.append("".join([ports[port][0]["HostPort"], '->', port]))
+            return final
+        else:
+            ports = info[0]['Config']['ExposedPorts'].keys()
+            if not ports:
+                return []
+            ports = [int(re.sub('[A-Za-z/]+', '', port)) for port in ports_asked]
+            return ports
+    except subprocess.CalledProcessError:
+        return []

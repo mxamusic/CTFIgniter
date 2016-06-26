@@ -118,10 +118,10 @@
                             </div>
                             <div class="row notification-row">
                                 <div id="incorrect-key" class="alert alert-danger alert-dismissable" role="alert">
-                                  <strong>Oopps..Incorrect! Try Harder</strong>
+                                  <strong>Incorrect</strong>
                                 </div>
                                 <div id="correct-key" class="alert alert-success alert-dismissable" role="alert">
-                                  <strong>Pawned! You got score!</strong>
+                                  <strong>Correct</strong>
                                 </div>
                                 <div id="already-solved" class="alert alert-info alert-dismissable" role="alert">
                                   <strong>You already solved this</strong>
@@ -154,7 +154,7 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="/static/js/utils.js"></script>
-    <script src="/static/js/chalboard.js"></script>
-    <script src="/static/js/style.js"></script>
+    <script src="{{ request.script_root }}/static/js/utils.js"></script>
+    <script src="{{ request.script_root }}/static/js/chalboard.js"></script>
+    <script src="{{ request.script_root }}/static/js/style.js"></script>
 {% endblock %}

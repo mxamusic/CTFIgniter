@@ -19,7 +19,7 @@ views = Blueprint('views', __name__)
 
 @views.before_request
 def redirect_setup():
-    if request.path == "/static/css/style.css":
+    if request.path.startswith("/static"):
         return
     if not is_setup() and request.path != "/setup":
         return redirect(url_for('views.setup'))
@@ -50,19 +50,15 @@ def setup():
 
             ## Index page
             page = Pages('index', """<div class="container main-container">
-    <img class="logo" src="/static/img/logo.png" />
+    <img class="logo" src="{0}/static/img/logo.png" />
     <h3 class="text-center">
-Welcome to CTFIgniter
+        Welcome to a cool CTF framework written by <a href="https://github.com/ColdHeat">Kevin Chung</a> of <a href="https://github.com/isislab">@isislab</a>
     </h3>
-    <center>
 
-<a href="/admin">Click here</a> to setup your CTF.
-<br><br><br>
-forked by: semprix
-<br>
-Credits to ColdHeat (Kevin Chung) of ISISLab
-</center>
-</div>""")
+    <h4 class="text-center">
+        <a href="{0}/admin">Click here</a> to login and setup your CTF
+    </h4>
+</div>""".format(request.script_root))
 
             #max attempts per challenge
             max_tries = set_config("max_tries",0)
@@ -93,9 +89,9 @@ Credits to ColdHeat (Kevin Chung) of ISISLab
             db.session.add(admin)
             db.session.commit()
             app.setup = False
-            return redirect('/')
+            return redirect(url_for('views.static_html'))
         return render_template('setup.html', nonce=session.get('nonce'))
-    return redirect('/')
+    return redirect(url_for('views.static_html'))
 
 
 # Custom CSS handler
@@ -139,9 +135,7 @@ def teams(page):
 def team(teamid):
     if get_config('view_scoreboard_if_authed') and not authed():
         return redirect(url_for('auth.login', next=request.path))
-    user = Teams.query.filter_by(id=teamid).first()
-    if not user:
-        abort(404)
+    user = Teams.query.filter_by(id=teamid).first_or_404()
     solves = Solves.query.filter_by(teamid=teamid)
     awards = Awards.query.filter_by(teamid=teamid).all()
     score = user.score()

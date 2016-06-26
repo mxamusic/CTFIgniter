@@ -38,6 +38,19 @@ class Pages(db.Model):
         return "<Tag {0} for challenge {1}>".format(self.tag, self.chal)
 
 
+class Containers(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    buildfile = db.Column(db.Text)
+
+    def __init__(self, name, buildfile):
+        self.name = name
+        self.buildfile = buildfile
+
+    def __repr__(self):
+        return "<Container ID:(0) {1}>".format(self.id, self.name)
+
+
 class Challenges(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
@@ -127,9 +140,9 @@ class Teams(db.Model):
     affiliation = db.Column(db.String(128))
     country = db.Column(db.String(32))
     bracket = db.Column(db.String(32))
-    banned = db.Column(db.Boolean)
-    verified = db.Column(db.Boolean)
-    admin = db.Column(db.Boolean)
+    banned = db.Column(db.Boolean, default=False)
+    verified = db.Column(db.Boolean, default=False)
+    admin = db.Column(db.Boolean, default=False)
 
     def __init__(self, name, email, password):
         self.name = name
@@ -141,7 +154,7 @@ class Teams(db.Model):
 
     def score(self):
         score = db.func.sum(Challenges.value).label('score')
-        team = db.session.query(Solves.teamid, score).join(Teams).join(Challenges).filter(Teams.banned == None, Teams.id==self.id).group_by(Solves.teamid).first()
+        team = db.session.query(Solves.teamid, score).join(Teams).join(Challenges).filter(Teams.banned == False, Teams.id==self.id).group_by(Solves.teamid).first()
         award_score = db.func.sum(Awards.value).label('award_score')
         award = db.session.query(award_score).filter_by(teamid=self.id).first()
         if team:
@@ -152,7 +165,7 @@ class Teams(db.Model):
     def place(self):
         score = db.func.sum(Challenges.value).label('score')
         quickest = db.func.max(Solves.date).label('quickest')
-        teams = db.session.query(Solves.teamid).join(Teams).join(Challenges).filter(Teams.banned == None).group_by(Solves.teamid).order_by(score.desc(), quickest).all()
+        teams = db.session.query(Solves.teamid).join(Teams).join(Challenges).filter(Teams.banned == False).group_by(Solves.teamid).order_by(score.desc(), quickest).all()
         #http://codegolf.stackexchange.com/a/4712
         try:
             i = teams.index((self.id,)) + 1
@@ -167,7 +180,7 @@ class Solves(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     chalid = db.Column(db.Integer, db.ForeignKey('challenges.id'))
     teamid = db.Column(db.Integer, db.ForeignKey('teams.id'))
-    ip = db.Column(db.Integer)
+    ip = db.Column(db.BigInteger)
     flag = db.Column(db.Text)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     team = db.relationship('Teams', foreign_keys="Solves.teamid", lazy='joined')
