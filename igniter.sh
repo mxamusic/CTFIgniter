@@ -93,6 +93,9 @@ ln -s /etc/nginx/sites-available/ctfigniter /etc/nginx/sites-enabled/ctfigniter
 echo -e "\e[38;5;82m===>\e[0m Copying startup script"
 cp $currentdir/scripts/startup.sh /var/www
 sleep 2
+echo -e "\e[38;5;82m===>\e[0m Copying cleanup script"
+cp $currentdir/scripts/cleanup.sh /var/www
+sleep 2
 echo -e "\e[38;5;82m===>\e[0m Setting startup script permission"
 chmod +x /var/www/startup.sh
 sleep 3
