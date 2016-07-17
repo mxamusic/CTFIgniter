@@ -60,13 +60,18 @@
     </div>
 
     {% block content %}
-    {% endblock %}
 
-  </div>
+    {% endblock %}
+    <footer class="footer">
+            <p class="text-muted">Copyright &copy; 2016 CTFIgniter All Rights Reserved.</p>
+        </footer>
+      </div>
+
   <script src="{{ request.script_root }}/static/js/vendor/jquery.min.js"></script>
   <script src="{{ request.script_root }}/static/js/vendor/marked.min.js"></script>
   <script src="{{ request.script_root }}/static/js/vendor/bootstrap.min.js"></script>
   {% block scripts %}
   {% endblock %}
+
 </body>
 </html>

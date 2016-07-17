@@ -56,7 +56,7 @@ def setup():
     </h3>
         <h4 class="text-center">
         Start setting-up your Capture The Flag - <a href="/admin">Click here</a>
-        </h4>
+        </h4><br><br><br><br><br>
 </div>""".format(request.script_root))
 
             #max attempts per challenge

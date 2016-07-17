@@ -132,7 +132,7 @@ def init_utils(app):
 
 def ctf_name():
     name = get_config('ctf_name')
-    return name if name else 'CTFd'
+    return name if name else 'CTFIgniter'
 
 
 def pages():
