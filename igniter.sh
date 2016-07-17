@@ -38,6 +38,10 @@ sleep 2
 echo -e "\e[38;5;82m===>\e[0m Installing Nginx"
 sleep 2
 apt-get -y install nginx
+# Install vim
+echo -e "\e[38;5;82m===>\e[0m Installing vim"
+sleep 2
+apt-get -y install vim
 # Install wget
 echo -e "\e[38;5;82m===>\e[0m Installing wget"
 sleep 2
