@@ -34,6 +34,11 @@ echo -e "\e[38;5;82m===>\e[0m Installing Git "
 sleep 2
 apt-get -y install git-core
 sleep 2
+# Install sudo
+echo -e "\e[38;5;82m===>\e[0m Installing sudo"
+sleep 2
+apt-get -y install sudo
+sleep 2
 # Install Nginx
 echo -e "\e[38;5;82m===>\e[0m Installing Nginx"
 sleep 2
@@ -42,21 +47,6 @@ apt-get -y install nginx
 echo -e "\e[38;5;82m===>\e[0m Installing vim"
 sleep 2
 apt-get -y install vim
-# Install wget
-echo -e "\e[38;5;82m===>\e[0m Installing wget"
-sleep 2
-apt-get -y install wget
-sleep 2
-# Install unzip
-echo -e "\e[38;5;82m===>\e[0m Installing unzip"
-sleep 2
-apt-get -y install unzip
-sleep 2
-# Install sudo
-echo -e "\e[38;5;82m===>\e[0m Installing sudo"
-sleep 2
-apt-get -y install sudo
-sleep 2
 
 # Phase 2 Installation
 
