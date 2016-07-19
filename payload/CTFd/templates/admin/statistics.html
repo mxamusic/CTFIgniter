@@ -2,10 +2,10 @@
 
 {% block content %}
 
-<div class="row" style="text-align:center">
+<div class="row">
     <br>
-    <h1>Statistics</h1>
-
+    <h1 style="text-align:left"><i class="fa fa-bar-chart" aria-hidden="true"></i> Statistics</h1>
+<hr>
     <h3><b>{{ team_count }}</b> teams registered</h3>
     <h3><b>{{ wrong_count }}</b> <a href="{{ request.script_root }}/admin/wrong_keys/1">wrong keys</a> submitted</h3>
     <h3><b>{{ solve_count }}</b> <a href="{{ request.script_root }}/admin/correct_keys/1">right keys</a> submitted</h3>
