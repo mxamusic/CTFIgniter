@@ -47,7 +47,10 @@ apt-get -y install nginx
 echo -e "\e[38;5;82m===>\e[0m Installing vim"
 sleep 2
 apt-get -y install vim
-
+# Install multitail
+echo -e "\e[38;5;82m===>\e[0m Installing multitail"
+sleep 2
+apt-get -y install multitail
 # Phase 2 Installation
 
 # Fetch get-pip to initialize pip
