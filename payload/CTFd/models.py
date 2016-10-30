@@ -1,9 +1,9 @@
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.sql import func
 
 from socket import inet_aton, inet_ntoa
-from struct import unpack, pack
+from struct import unpack, pack, error as struct_error
 from passlib.hash import bcrypt_sha256
 
 import datetime
@@ -16,11 +16,15 @@ def sha512(string):
 
 
 def ip2long(ip):
-    return unpack('!I', inet_aton(ip))[0]
+    return unpack('!i', inet_aton(ip))[0]
 
 
 def long2ip(ip_int):
-    return inet_ntoa(pack('!I', ip_int))
+    try:
+        return inet_ntoa(pack('!i', ip_int))
+    except struct_error:
+        # Backwards compatibility with old CTFd databases
+        return inet_ntoa(pack('!I', ip_int))
 
 db = SQLAlchemy()
 
@@ -35,7 +39,7 @@ class Pages(db.Model):
         self.html = html
 
     def __repr__(self):
-        return "<Tag {0} for challenge {1}>".format(self.tag, self.chal)
+        return "<Pages {0} for challenge {1}>".format(self.tag, self.chal)
 
 
 class Containers(db.Model):
@@ -143,6 +147,7 @@ class Teams(db.Model):
     banned = db.Column(db.Boolean, default=False)
     verified = db.Column(db.Boolean, default=False)
     admin = db.Column(db.Boolean, default=False)
+    joined = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def __init__(self, name, email, password):
         self.name = name
@@ -180,7 +185,7 @@ class Solves(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     chalid = db.Column(db.Integer, db.ForeignKey('challenges.id'))
     teamid = db.Column(db.Integer, db.ForeignKey('teams.id'))
-    ip = db.Column(db.BigInteger)
+    ip = db.Column(db.Integer)
     flag = db.Column(db.Text)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     team = db.relationship('Teams', foreign_keys="Solves.teamid", lazy='joined')

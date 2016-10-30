@@ -1,5 +1,5 @@
 from flask import current_app as app, render_template, render_template_string, request, redirect, abort, jsonify, json as json_mod, url_for, session, Blueprint, Response
-from CTFd.utils import authed, ip2long, long2ip, is_setup, validate_url, get_config, set_config, sha512, get_ip
+from CTFd.utils import authed, ip2long, long2ip, is_setup, validate_url, get_config, set_config, sha512, get_ip, cache
 from CTFd.models import db, Teams, Solves, Awards, Challenges, WrongKeys, Keys, Tags, Files, Tracking, Pages, Config
 
 from jinja2.exceptions import TemplateNotFound
@@ -50,13 +50,14 @@ def setup():
 
             ## Index page
             page = Pages('index', """<div class="container main-container">
-        <img class="logo" src="{0}/static/assets/img/ctfigniter_logo.png" />
+    <img class="logo" src="{0}/static/original/img/logo.png" />
     <h3 class="text-center">
-    Hello! Welcome to CTFIgniter
+        Welcome to a cool CTF framework written by <a href="https://github.com/ColdHeat">Kevin Chung</a> of <a href="https://github.com/isislab">@isislab</a>
     </h3>
-        <h4 class="text-center">
-        Start setting-up your Capture The Flag - <a href="/admin">Click here</a>
-        </h4><br><br><br><br><br>
+
+    <h4 class="text-center">
+        <a href="{0}/admin">Click here</a> to login and setup your CTF
+    </h4>
 </div>""".format(request.script_root))
 
             #max attempts per challenge
@@ -87,7 +88,10 @@ def setup():
             db.session.add(page)
             db.session.add(admin)
             db.session.commit()
+            db.session.close()
             app.setup = False
+            with app.app_context():
+                cache.clear()
             return redirect(url_for('views.static_html'))
         return render_template('setup.html', nonce=session.get('nonce'))
     return redirect(url_for('views.static_html'))
@@ -108,7 +112,7 @@ def static_html(template):
     except TemplateNotFound:
         page = Pages.query.filter_by(route=template).first()
         if page:
-            return render_template_string('{% extends "base.html" %}{% block content %}' + page.html + '{% endblock %}')
+            return render_template('page.html', content=page.html)
         else:
             abort(404)
 
@@ -122,10 +126,11 @@ def teams(page):
     page_end = results_per_page * ( page - 1 ) + results_per_page
 
     if get_config('verify_emails'):
-        teams = Teams.query.filter_by(verified=True).slice(page_start, page_end).all()
+        count = Teams.query.filter_by(verified=True, banned=False).count()
+        teams = Teams.query.filter_by(verified=True, banned=False).slice(page_start, page_end).all()
     else:
-        teams = Teams.query.slice(page_start, page_end).all()
-    count = len(teams)
+        count = Teams.query.filter_by(banned=False).count()
+        teams = Teams.query.filter_by(banned=False).slice(page_start, page_end).all()
     pages = int(count / results_per_page) + (count % results_per_page > 0)
     return render_template('teams.html', teams=teams, team_pages=pages, curr_page=page)
 
@@ -169,7 +174,7 @@ def profile():
                 name_len = len(request.form['name']) == 0
 
             emails = Teams.query.filter_by(email=email).first()
-            valid_email = re.match("[^@]+@[^@]+\.[^@]+", email)
+            valid_email = re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email)
 
             if ('password' in request.form.keys() and not len(request.form['password']) == 0) and \
                     (not bcrypt_sha256.verify(request.form.get('confirm').strip(), user.password)):

@@ -1,6 +1,9 @@
 from flask import render_template, request, redirect, abort, jsonify, url_for, session, Blueprint
-from CTFd.utils import sha512, is_safe_url, authed, admins_only, is_admin, unix_time, unix_time_millis, get_config, set_config, sendmail, rmdir, create_image, delete_image, run_image, container_status, container_ports, container_stop, container_start
+from CTFd.utils import sha512, is_safe_url, authed, admins_only, is_admin, unix_time, unix_time_millis, get_config, \
+    set_config, sendmail, rmdir, create_image, delete_image, run_image, container_status, container_ports, \
+    container_stop, container_start, get_themes, cache
 from CTFd.models import db, Teams, Solves, Awards, Containers, Challenges, WrongKeys, Keys, Tags, Files, Tracking, Pages, Config, DatabaseError
+from CTFd.scoreboard import get_standings
 from itsdangerous import TimedSerializer, BadTimeSignature
 from sqlalchemy.sql import and_, or_, not_
 from sqlalchemy.sql.expression import union_all
@@ -18,8 +21,6 @@ import os
 import json
 import datetime
 import calendar
-
-from scoreboard import get_standings
 
 admin = Blueprint('admin', __name__)
 
@@ -86,7 +87,9 @@ def admin_config():
         mail_password = set_config("mail_password", request.form.get('mail_password', None))
 
         ctf_name = set_config("ctf_name", request.form.get('ctf_name', None))
+        ctf_theme = set_config("ctf_theme", request.form.get('ctf_theme', None))
 
+        mailfrom_addr = set_config("mailfrom_addr", request.form.get('mailfrom_addr', None))
         mg_base_url = set_config("mg_base_url", request.form.get('mg_base_url', None))
         mg_api_key = set_config("mg_api_key", request.form.get('mg_api_key', None))
 
@@ -102,9 +105,15 @@ def admin_config():
         db.session.add(db_end)
 
         db.session.commit()
+        db.session.close()
+        with app.app_context():
+            cache.clear()
         return redirect(url_for('admin.admin_config'))
 
+    with app.app_context():
+        cache.clear()
     ctf_name = get_config('ctf_name')
+    ctf_theme = get_config('ctf_theme')
     max_tries = get_config('max_tries')
 
     mail_server = get_config('mail_server')
@@ -112,6 +121,7 @@ def admin_config():
     mail_username = get_config('mail_username')
     mail_password = get_config('mail_password')
 
+    mailfrom_addr = get_config('mailfrom_addr')
     mg_api_key = get_config('mg_api_key')
     mg_base_url = get_config('mg_base_url')
     if not max_tries:
@@ -151,8 +161,12 @@ def admin_config():
         end = datetime.datetime.fromtimestamp(float(end))
         end_days = calendar.monthrange(end.year, end.month)[1]
 
+    themes = get_themes()
+    themes.remove(ctf_theme)
+
     return render_template('admin/config.html',
                            ctf_name=ctf_name,
+                           ctf_theme_config=ctf_theme,
                            start=start,
                            end=end,
                            max_tries=max_tries,
@@ -165,6 +179,7 @@ def admin_config():
                            view_challenges_unregistered=view_challenges_unregistered,
                            view_scoreboard_if_authed=view_scoreboard_if_authed,
                            prevent_registration=prevent_registration,
+                           mailfrom_addr=mailfrom_addr,
                            mg_base_url=mg_base_url,
                            mg_api_key=mg_api_key,
                            prevent_name_change=prevent_name_change,
@@ -173,7 +188,8 @@ def admin_config():
                            months=months,
                            curr_year=curr_year,
                            start_days=start_days,
-                           end_days=end_days)
+                           end_days=end_days,
+                           themes=themes)
 
 
 @admin.route('/admin/css', methods=['GET', 'POST'])
@@ -209,10 +225,12 @@ def admin_pages(route):
             page.route = route
             page.html = html
             db.session.commit()
+            db.session.close()
             return redirect(url_for('admin.admin_pages'))
         page = Pages(route, html)
         db.session.add(page)
         db.session.commit()
+        db.session.close()
         return redirect(url_for('admin.admin_pages'))
     pages = Pages.query.all()
     return render_template('admin/pages.html', routes=pages, css=get_config('css'))
@@ -224,6 +242,7 @@ def delete_page(pageroute):
     page = Pages.query.filter_by(route=pageroute).first()
     db.session.delete(page)
     db.session.commit()
+    db.session.close()
     return '1'
 
 
@@ -445,9 +464,11 @@ def admin_team(teamid):
         solves = Solves.query.filter_by(teamid=teamid).all()
         solve_ids = [s.chalid for s in solves]
         missing = Challenges.query.filter( not_(Challenges.id.in_(solve_ids) ) ).all()
-        addrs = db.session.query(Tracking.ip, db.func.max(Tracking.date)) \
+        last_seen = db.func.max(Tracking.date).label('last_seen')
+        addrs = db.session.query(Tracking.ip, last_seen) \
                 .filter_by(team=teamid) \
-                .group_by(Tracking.ip).all()
+                .group_by(Tracking.ip) \
+                .order_by(last_seen.desc()).all()
         wrong_keys = WrongKeys.query.filter_by(teamid=teamid).order_by(WrongKeys.date.asc()).all()
         awards = Awards.query.filter_by(teamid=teamid).order_by(Awards.date.asc()).all()
         score = user.score()
@@ -515,6 +536,7 @@ def ban(teamid):
     user = Teams.query.filter_by(id=teamid).first()
     user.banned = True
     db.session.commit()
+    db.session.close()
     return redirect(url_for('admin.admin_scoreboard'))
 
 
@@ -524,6 +546,7 @@ def unban(teamid):
     user = Teams.query.filter_by(id=teamid).first()
     user.banned = False
     db.session.commit()
+    db.session.close()
     return redirect(url_for('admin.admin_scoreboard'))
 
 
@@ -536,6 +559,7 @@ def delete_team(teamid):
         Tracking.query.filter_by(team=teamid).delete()
         Teams.query.filter_by(id=teamid).delete()
         db.session.commit()
+        db.session.close()
     except DatabaseError:
         return '0'
     else:
@@ -602,6 +626,7 @@ def create_award():
         award.category = request.form.get('category')
         db.session.add(award)
         db.session.commit()
+        db.session.close()
         return "1"
     except Exception as e:
         print e
@@ -615,6 +640,7 @@ def delete_award(award_id):
         award = Awards.query.filter_by(id=award_id).first()
         db.session.delete(award)
         db.session.commit()
+        db.session.close()
         return '1'
     except Exception as e:
         print e
@@ -676,54 +702,61 @@ def create_solve(teamid, chalid):
     db.session.close()
     return '1'
 
-@admin.route('/admin/solves/<teamid>/<chalid>/delete', methods=['POST'])
+@admin.route('/admin/solves/<keyid>/delete', methods=['POST'])
 @admins_only
-def delete_solve(teamid, chalid):
-    solve = Solves.query.filter_by(teamid=teamid, chalid=chalid).first()
+def delete_solve(keyid):
+    solve = Solves.query.filter_by(id=keyid).first_or_404()
     db.session.delete(solve)
     db.session.commit()
     db.session.close()
     return '1'
 
 
-@admin.route('/admin/wrong_keys/<teamid>/<chalid>/delete', methods=['POST'])
+@admin.route('/admin/wrong_keys/<keyid>/delete', methods=['POST'])
 @admins_only
-def delete_wrong_key(teamid, chalid):
-    wrong_key = WrongKeys.query.filter_by(teamid=teamid, chalid=chalid).first()
+def delete_wrong_key(keyid):
+    wrong_key = WrongKeys.query.filter_by(id=keyid).first_or_404()
     db.session.delete(wrong_key)
     db.session.commit()
+    db.session.close()
     return '1'
+
 
 
 @admin.route('/admin/statistics', methods=['GET'])
 @admins_only
 def admin_stats():
-    db.session.commit()
-
     teams_registered = db.session.query(db.func.count(Teams.id)).first()[0]
     wrong_count = db.session.query(db.func.count(WrongKeys.id)).first()[0]
     solve_count = db.session.query(db.func.count(Solves.id)).first()[0]
     challenge_count = db.session.query(db.func.count(Challenges.id)).first()[0]
-    
-    solves_raw = db.func.count(Solves.chalid).label('solves_raw')
-    solves_sub = db.session.query(Solves.chalid, solves_raw) \
+
+    solves_sub = db.session.query(Solves.chalid, db.func.count(Solves.chalid).label('solves_cnt')) \
+        .join(Teams, Solves.teamid == Teams.id).filter(Teams.banned == False) \
         .group_by(Solves.chalid).subquery()
-    solves_cnt = coalesce(solves_sub.columns.solves_raw, 0).label('solves_cnt')
-    most_solved_chal = Challenges.query.add_columns(solves_cnt) \
-        .outerjoin(solves_sub, solves_sub.columns.chalid == Challenges.id) \
-        .order_by(solves_cnt.desc()).first()
-    least_solved_chal = Challenges.query.add_columns(solves_cnt) \
-        .outerjoin(solves_sub, solves_sub.columns.chalid == Challenges.id) \
-        .order_by(solves_cnt.asc()).first()
-    
+    solves = db.session.query(solves_sub.columns.chalid, solves_sub.columns.solves_cnt, Challenges.name) \
+        .join(Challenges, solves_sub.columns.chalid == Challenges.id).all()
+    solve_data = {}
+    for chal, count, name in solves:
+        solve_data[name] = count
+
+    most_solved = None
+    least_solved = None
+    if len(solve_data):
+        most_solved = max(solve_data, key=solve_data.get)
+        least_solved = min(solve_data, key=solve_data.get)
+        
+    db.session.expunge_all()
+    db.session.commit()
     db.session.close()
 
     return render_template('admin/statistics.html', team_count=teams_registered,
         wrong_count=wrong_count,
         solve_count=solve_count,
         challenge_count=challenge_count,
-        most_solved=most_solved_chal,
-        least_solved=least_solved_chal
+        solve_data=solve_data,
+        most_solved=most_solved,
+        least_solved=least_solved
         )
 
 
@@ -735,9 +768,9 @@ def admin_wrong_key(page='1'):
     page_start = results_per_page * ( page - 1 )
     page_end = results_per_page * ( page - 1 ) + results_per_page
 
-    wrong_keys = WrongKeys.query.add_columns(WrongKeys.chalid, WrongKeys.flag, WrongKeys.teamid, WrongKeys.date,\
+    wrong_keys = WrongKeys.query.add_columns(WrongKeys.id, WrongKeys.chalid, WrongKeys.flag, WrongKeys.teamid, WrongKeys.date,\
                 Challenges.name.label('chal_name'), Teams.name.label('team_name')).\
-                join(Challenges).join(Teams).order_by('team_name ASC').slice(page_start, page_end).all()
+                join(Challenges).join(Teams).order_by(WrongKeys.date.desc()).slice(page_start, page_end).all()
 
     wrong_count = db.session.query(db.func.count(WrongKeys.id)).first()[0]
     pages = int(wrong_count / results_per_page) + (wrong_count % results_per_page > 0)
@@ -753,9 +786,9 @@ def admin_correct_key(page='1'):
     page_start = results_per_page * (page - 1)
     page_end = results_per_page * (page - 1) + results_per_page
 
-    solves = Solves.query.add_columns(Solves.chalid, Solves.teamid, Solves.date, Solves.flag, \
+    solves = Solves.query.add_columns(Solves.id, Solves.chalid, Solves.teamid, Solves.date, Solves.flag, \
                 Challenges.name.label('chal_name'), Teams.name.label('team_name')).\
-                join(Challenges).join(Teams).order_by('team_name ASC').slice(page_start, page_end).all()
+                join(Challenges).join(Teams).order_by(Solves.date.desc()).slice(page_start, page_end).all()
 
     solve_count = db.session.query(db.func.count(Solves.id)).first()[0]
     pages = int(solve_count / results_per_page) + (solve_count % results_per_page > 0)

@@ -11,14 +11,16 @@ with open('.ctfd_secret_key', 'a+') as secret:
 
 ##### SERVER SETTINGS #####
 SECRET_KEY = key
-SQLALCHEMY_DATABASE_URI = 'sqlite:///ctfd.db'
+SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///ctfd.db'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SESSION_TYPE = "filesystem"
 SESSION_FILE_DIR = "/tmp/flask_session"
 SESSION_COOKIE_HTTPONLY = True
 PERMANENT_SESSION_LIFETIME = 604800 # 7 days in seconds
 HOST = ".ctfd.io"
+MAILFROM_ADDR = "noreply@ctfd.io"
 UPLOAD_FOLDER = os.path.normpath('static/uploads')
+TEMPLATES_AUTO_RELOAD = True
 TRUSTED_PROXIES = [
     '^127\.0\.0\.1$',
     ## Remove the following proxies if you do not trust the local network
@@ -29,3 +31,7 @@ TRUSTED_PROXIES = [
     '^172\.(1[6-9]|2[0-9]|3[0-1])\.',
     '^192\.168\.'
 ]
+
+CACHE_TYPE = "simple"
+if CACHE_TYPE == 'redis':
+    CACHE_REDIS_URL = os.environ.get('REDIS_URL')

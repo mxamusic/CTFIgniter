@@ -2,7 +2,23 @@
 # Future enhancements
 # author: @semprix
 
+##### Roadmap
 1. Telegram integration
 2. Theming
 3. FreeBSD deployment
 4. Ubuntu deployment testing
+5. Patching from ISISLab
+
+##### Fixes and updates
+
+1. Login font-awesome & submit button - done
+2. Register font-awesome & submit button - done
+3. Team font-awesome (url/team/<number>)
+4. Profile font-awesome & button
+5. Footer fork us
+6. Admin->Statistics remove center place on left
+7. Admin footer
+8. Admin->Teams text align left with hr
+9. Admin->Scoreboard text align left with hr
+10. Admin->Challenges New Challenges button
+11. Admin->Config button
