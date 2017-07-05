@@ -102,5 +102,5 @@ cp $currentdir/serve.py /var/www/CTFd
 echo -e "\e[38;5;82m===>\e[0m CTFIgniter installation finish"
 echo -e "\e[38;5;82m===>\e[0m Starting CTFIgniter"
 sleep 2
-cd /var/www/
+cd /var/www/CTFd
 python serve.py
