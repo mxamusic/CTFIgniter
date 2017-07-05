@@ -3,10 +3,8 @@
 # CTF Igniter
 # A fast CTF deployment tool, the tool will deploy Nginx and use CTFd engine.
 # author: @semprix
+# igniter file has been tested on Debian 7-9
 #
-#
-
-# Debian setup
 
 currentdir=`pwd`
 
