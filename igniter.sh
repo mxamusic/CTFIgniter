@@ -94,6 +94,8 @@ cp $currentdir/assets/static/views.py /var/www/CTFd/CTFd
 cp $currentdir/assets/static/admin/templates/base.html /var/www/CTFd/CTFd/themes/admin/templates
 cp $currentdir/assets/static/original/templates/base.html /var/www/CTFd/CTFd/themes/original/templates
 cp $currentdir/assets/img/logo.png /var/www/CTFd/CTFd/themes/original/static/img/logo.png
+cp $currentdir/assets/img/favicon.ico /var/www/CTFd/CTFd/themes/original/static/img/favicon.ico
+
 sleep 2
 
 #
