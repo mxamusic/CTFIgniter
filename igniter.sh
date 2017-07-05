@@ -93,7 +93,7 @@ sleep 2
 cp $currentdir/assets/static/views.py /var/www/CTFd/CTFd
 cp $currentdir/assets/static/admin/templates/base.html /var/www/CTFd/CTFd/themes/admin/templates
 cp $currentdir/assets/static/original/templates/base.html /var/www/CTFd/CTFd/themes/original/templates
-
+cp $currentdir/assets/img/logo.png /var/www/CTFd/CTFd/themes/original/static/img/logo.png
 sleep 2
 
 #
