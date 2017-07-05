@@ -51,7 +51,6 @@ echo -e "\e[38;5;82m===>\e[0m Upgrading pip"
 sleep 2
 pip install --upgrade pip
 sleep 2
-
 # Install unzip
 echo -e "\e[38;5;82m===>\e[0m Installing unzip"
 sleep 2
@@ -62,10 +61,6 @@ echo -e "\e[38;5;82m===>\e[0m Installing Git "
 sleep 2
 apt-get -y install git
 sleep 2
-# Install Nginx
-echo -e "\e[38;5;82m===>\e[0m Installing Nginx"
-sleep 2
-apt-get -y install nginx
 # Install vim
 echo -e "\e[38;5;82m===>\e[0m Installing vim"
 sleep 2
@@ -85,7 +80,18 @@ cd CTFd-master
 sleep 2
 sh prepare.sh
 sleep 2
+echo -e "\e[38;5;82m===>\e[0m Creating document root"
+sleep 2
+mkdir -p /var/www
+sleep 2
 echo -e "\e[38;5;82m===>\e[0m Copying payload to /var/www"
+sleep 2
+cp -R CTFd /var/www
+sleep 2
+echo -e "\e[38;5;82m===>\e[0m Copying assets"
+sleep 2
+cp $currentdir/assets/views.py /var/www/CTFd/
+cp $currentdir/assets/static/admin/templates/base.html /var/www/CTFd/themes/admin/templates
 sleep 2
 
 #
