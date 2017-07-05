@@ -86,19 +86,19 @@ mkdir -p /var/www
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Copying payload to /var/www"
 sleep 2
-cp -R CTFd /var/www
+cp -R $currentdir/payload/CTFd /var/www
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Copying assets"
 sleep 2
-cp $currentdir/assets/static/views.py /var/www/CTFd/
-cp $currentdir/assets/static/admin/templates/base.html /var/www/CTFd/themes/admin/templates
+cp $currentdir/assets/static/views.py /var/www/CTFd/CTFd
+cp $currentdir/assets/static/admin/templates/base.html /var/www/CTFd/CTFd/themes/admin/templates
 sleep 2
 
 #
 # Stage 3 Installation
 #
 echo -e "\e[38;5;82m[++]\e[0m Performing post-installation cleanup"
-cp $currentdir/serve.py /var/www/
+cp $currentdir/serve.py /var/www/CTFd
 echo -e "\e[38;5;82m===>\e[0m CTFIgniter installation finish"
 echo -e "\e[38;5;82m===>\e[0m Starting CTFIgniter"
 sleep 2
