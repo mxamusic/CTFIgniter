@@ -90,7 +90,7 @@ cp -R CTFd /var/www
 sleep 2
 echo -e "\e[38;5;82m===>\e[0m Copying assets"
 sleep 2
-cp $currentdir/assets/views.py /var/www/CTFd/
+cp $currentdir/assets/static/views.py /var/www/CTFd/
 cp $currentdir/assets/static/admin/templates/base.html /var/www/CTFd/themes/admin/templates
 sleep 2
 
@@ -98,11 +98,9 @@ sleep 2
 # Stage 3 Installation
 #
 echo -e "\e[38;5;82m[++]\e[0m Performing post-installation cleanup"
-sleep 2
-echo -e "\e[38;5;82m[++]\e[0m Performing post-installation cleanup"
-cp $currentdir/serve.py /var/www/CTFd/
+cp $currentdir/serve.py /var/www/
 echo -e "\e[38;5;82m===>\e[0m CTFIgniter installation finish"
 echo -e "\e[38;5;82m===>\e[0m Starting CTFIgniter"
 sleep 2
-cd /var/www/CTFd/
+cd /var/www/
 python serve.py
