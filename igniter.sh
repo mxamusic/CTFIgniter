@@ -92,6 +92,8 @@ echo -e "\e[38;5;82m===>\e[0m Copying assets"
 sleep 2
 cp $currentdir/assets/static/views.py /var/www/CTFd/CTFd
 cp $currentdir/assets/static/admin/templates/base.html /var/www/CTFd/CTFd/themes/admin/templates
+cp $currentdir/assets/static/original/templates/base.html /var/www/CTFd/CTFd/themes/original/templates
+
 sleep 2
 
 #
