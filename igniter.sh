@@ -44,7 +44,7 @@ sleep 2
 # Install Python pip
 echo -e "\e[38;5;82m===>\e[0m Installing pip"
 sleep 2
-apt-get install python-pip
+apt-get -y install python-pip
 sleep 2
 # Upgrade Python pip
 echo -e "\e[38;5;82m===>\e[0m Upgrading pip"
@@ -74,6 +74,7 @@ apt-get -y install multitail
 # Perform merge
 cd payload
 echo -e "\e[38;5;82m===>\e[0m Merging updates"
+cd $currentdir/payload/CTFd
 git pull
 echo -e "\e[38;5;82m===>\e[0m Preparing CTFd payload"
 cd CTFd-master
