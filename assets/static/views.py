@@ -40,11 +40,8 @@ def setup():
             page = Pages('index', """<div class="container main-container">
     <img class="logo" src="themes/original/static/img/logo.png" />
     <h3 class="text-center">
-        <p>A cool CTF platform from <a href="https://ctfd.io">ctfd.io</a></p>
-        <p>Follow us on social media:</p>
-        <a href="https://twitter.com/ctfdio"><i class="fa fa-twitter fa-2x" aria-hidden="true"></i></a>&nbsp;
-        <a href="https://facebook.com/ctfdio"><i class="fa fa-facebook-official fa-2x" aria-hidden="true"></i></a>&nbsp;
-        <a href="https://github.com/ctfd"><i class="fa fa-github fa-2x" aria-hidden="true"></i></a>
+        <p>Welcome to the ROOTCON11 Capture the Flag</p>
+        <p>Enjoy!</p>
     </h3>
     <br>
     <h4 class="text-center">
