@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/semprix/CTFIgniter/master/assets/img/ctfigniter_logo.png">
+<img src="https://raw.githubusercontent.com/semprix/CTFIgniter/master/assets/img/logo.png">
 </p>
 ====
 
