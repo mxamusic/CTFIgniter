@@ -74,9 +74,9 @@ apt-get -y install multitail
 # Perform merge
 cd payload
 echo -e "\e[38;5;82m===>\e[0m Merging updates"
-git pull $currentdir/payload/CTFd
+git clone https://github.com/CTFd/CTFd.git $currentdir/payload/CTFd
 echo -e "\e[38;5;82m===>\e[0m Preparing CTFd payload"
-cd CTFd-master
+cd $currentdir/payload/CTFd
 sleep 2
 sh prepare.sh
 sleep 2
