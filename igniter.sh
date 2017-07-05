@@ -11,7 +11,7 @@
 currentdir=`pwd`
 
 echo -e "\e[38;5;82m*******************************************************************************\e[0m"
-echo -e "\e[38;5;82mCTF Igniter is a fast CTF deployment tool, it will deploy Nginx and CTFd Engine\e[0m"
+echo -e "\e[38;5;82mCTF Igniter is a fast CTF deployment tool, it will deploy custom CTFd Engine   \e[0m"
 echo -e "\e[38;5;82m*******************************************************************************\e[0m"
 echo ""
 echo -e "\e[38;5;82m===>\e[0m Checking if run as root"
@@ -22,22 +22,45 @@ if [ "$(id -u)" != "0" ]; then
 else
    echo -e "\e[38;5;82m[++]\e[0m We are root!!!"
 fi
-echo -e "\e[38;5;82m===>\e[0m Updating tree"
+echo -e "\e[38;5;82m===>\e[0m Updating package tree"
 sleep 3
 # Update tree
 apt-get update
 # Set locale first to prevent locale errors
 echo -e "\e[38;5;82m===>\e[0m Exporting locale"
 export LC_ALL=C
-# Install git-core
-echo -e "\e[38;5;82m===>\e[0m Installing Git "
-sleep 2
-apt-get -y install git-core
-sleep 2
+
+# Stage 1 Installation
 # Install sudo
 echo -e "\e[38;5;82m===>\e[0m Installing sudo"
 sleep 2
 apt-get -y install sudo
+sleep 2
+# Install Python essentials
+echo -e "\e[38;5;82m===>\e[0m Installing Python essentials"
+sleep 2
+apt-get -y install python-dev build-essential
+sleep 2
+# Install Python pip
+echo -e "\e[38;5;82m===>\e[0m Installing pip"
+sleep 2
+apt-get install python-pip
+sleep 2
+# Upgrade Python pip
+echo -e "\e[38;5;82m===>\e[0m Upgrading pip"
+sleep 2
+pip install --upgrade pip
+sleep 2
+
+# Install unzip
+echo -e "\e[38;5;82m===>\e[0m Installing unzip"
+sleep 2
+apt-get -y install unzip
+sleep 2
+# Install git
+echo -e "\e[38;5;82m===>\e[0m Installing Git "
+sleep 2
+apt-get -y install git
 sleep 2
 # Install Nginx
 echo -e "\e[38;5;82m===>\e[0m Installing Nginx"
@@ -51,65 +74,25 @@ apt-get -y install vim
 echo -e "\e[38;5;82m===>\e[0m Installing multitail"
 sleep 2
 apt-get -y install multitail
-# Phase 2 Installation
 
-# Fetch get-pip to initialize pip
-echo -e "\e[38;5;82m===>\e[0m Bootstrapping pip "
-wget https://bootstrap.pypa.io/get-pip.py
-python get-pip.py
-# Switch to /var/www directory
-cd /var/www/
-# Extract payload to www root
-echo -e "\e[38;5;82m===>\e[0m Extracting CTFd engine to www root"
-cp -R $currentdir/payload/CTFd /var/www
+# Stage 2 Installation
+# Perform merge
+cd payload
+echo -e "\e[38;5;82m===>\e[0m Merging updates"
+git pull
+echo -e "\e[38;5;82m===>\e[0m Preparing CTFd payload"
+cd CTFd-master
 sleep 2
-echo -e "\e[38;5;82m===>\e[0m Copying serve engine to www root"
-cp -R $currentdir/payload/serve.py /var/www/
+sh prepare.sh
 sleep 2
-echo -e "\e[38;5;82m===>\e[0m Building essentials"
-apt-get install build-essential python-dev python-pip libffi-dev -y
+echo -e "\e[38;5;82m===>\e[0m Copying payload to /var/www"
 sleep 2
-echo -e "\e[38;5;82m===>\e[0m Fetching required python libraries"
-pip install -r $currentdir/payload/requirements.txt
-echo -e "\e[38;5;82m===>\e[0m Fetching uwsgi"
-sleep 2
-pip install uwsgi
 
 #
-# Post Installation Tasks
+# Stage 3 Installation
 #
-echo -e "\e[38;5;82m[++]\e[0m Performing Post-installation"
-
+echo -e "\e[38;5;82m[++]\e[0m Performing post-installation cleanup"
 echo -e "\e[38;5;82m===>\e[0m Forcing Stop Nginx"
 killall nginx
 sleep 3
-echo -e "\e[38;5;82m===>\e[0m Copying Nginx configs"
-cp $currentdir/conf/ctfd.nginx.conf /etc/nginx/sites-available/ctfigniter
-echo -e "\e[38;5;82m===>\e[0m Creating symbolic links"
-ln -s /etc/nginx/sites-available/ctfigniter /etc/nginx/sites-enabled/ctfigniter
-echo -e "\e[38;5;82m===>\e[0m Copying startup script"
-cp $currentdir/scripts/startup.sh /var/www
-sleep 2
-echo -e "\e[38;5;82m===>\e[0m Copying cleanup script"
-cp $currentdir/scripts/cleanup.sh /var/www
-sleep 2
-echo -e "\e[38;5;82m===>\e[0m Setting startup script permission"
-chmod +x /var/www/startup.sh
-sleep 3
-echo -e "\e[38;5;82m===>\e[0m Performing cleanup"
-rm -rf /etc/nginx/sites-available/default
-rm -rf /etc/nginx/sites-enabled/default
-rm -rf /var/www/html
-rm -rf $currentdir/get-pip.py
-rm -rf $currentdir/payload/requirements.txt
-echo -e "\e[38;5;82m===>\e[0m Starting Nginx"
-service nginx start
-sleep 3
-echo -e "\e[38;5;82m===>\e[0m Starting CTFIgniter CTF web"
-echo -e "\e[38;5;82m[******]\e[0m NOT RECOMMENDED TO RUN AS root"
-
-sh /var/www/startup.sh
-sleep 2
-echo -e "\e[38;5;82m===>\e[0m To run as non-root CTRL-C then user another user."
-echo -e "\e[38;5;82m===>\e[0m Finishing....."
-echo -e "\e[38;5;82m===>\e[0m Done"
+echo -e "\e[38;5;82m===>\e[0m CTFIgniter installation finish"
