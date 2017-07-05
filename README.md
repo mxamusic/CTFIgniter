@@ -4,7 +4,7 @@
 ====
 
 # CTFIgniter
-CTF Igniter is a fast CTF deployment tool with Nginx + CTFd engine.
+CTF Igniter is a fast CTF deployment with CTFd engine payload.
 
 # Installation
 1. Install a Debian system (base system + ssh server only).
@@ -15,6 +15,7 @@ CTF Igniter is a fast CTF deployment tool with Nginx + CTFd engine.
 5. Report any errors encountered.
 
 # Tested on
+ - Debian 9 (Stretch) 64-bit
  - Debian 8 (Jessie) 64-bit
  - Debian 7 (Wheezy) 64-bit
 
